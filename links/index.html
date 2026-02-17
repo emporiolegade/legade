@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <!-- Mantive o ajuste de viewport para evitar zoom indesejado em toques duplos -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- SEO & Social Sharing -->
+    <title>Links | Empório Le Gadē</title>
+    <meta name="description" content="Gastronomia, Tradição & Arte. Acesse nosso catálogo exclusivo e atendimento concierge.">
+    <meta property="og:title" content="Empório Le Gadē">
+    <meta property="og:description" content="Vinhos, Gastronomia e Experiências Exclusivas no Eusébio.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1569915807929-236424e4d580?q=80&w=1000&auto=format&fit=crop"> 
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#0e160e">
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            300: '#e5c05e',
+                            400: '#d4af37', 
+                            500: '#c5a028',
+                            600: '#aa8a22',
+                        },
+                        leGadeGreen: {
+                            900: '#0e160e',
+                            800: '#1a261a',
+                        }
+                    },
+                    fontFamily: {
+                        display: ['"Cinzel"', 'serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Lato"', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- ESTILIZAÇÃO DA BARRA DE ROLAGEM (SCROLLBAR) --- */
+        
+        /* Para Chrome, Safari e Edge */
+        ::-webkit-scrollbar {
+            width: 10px; /* Largura fina */
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0e160e; /* Fundo da trilha igual ao fundo do site */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #aa8a22; /* Dourado escuro */
+            border-radius: 6px; /* Bordas arredondadas */
+            border: 2px solid #0e160e; /* Cria uma margem "falsa" para parecer flutuante */
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #d4af37; /* Dourado mais claro ao passar o mouse */
+        }
+
+        /* Para Firefox */
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: #aa8a22 #0e160e;
+        }
+
+        /* --- FIM DA SCROLLBAR --- */
+
+        body {
+            background-color: #0e160e;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            touch-action: manipulation; /* Melhora resposta ao toque no mobile */
+        }
+
+        /* 1. Fundo com Textura de Ruído */
+        .bg-noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* 2. Background Image com Filtro Verde Intenso */
+        .bg-overlay {
+            position: fixed;
+            inset: 0;
+            background: 
+                linear-gradient(to bottom, rgba(14, 22, 14, 0.85), rgba(8, 14, 8, 0.98)),
+                url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=1920&auto=format&fit=crop'); 
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+            transform: scale(1.05);
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* 3. Efeito de Vidro */
+        .premium-card {
+            background: linear-gradient(135deg, rgba(26, 38, 26, 0.4) 0%, rgba(14, 20, 14, 0.2) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .premium-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(212, 175, 55, 0.1),
+                rgba(255, 255, 255, 0.05),
+                rgba(212, 175, 55, 0.1),
+                transparent
+            );
+            transform: skewX(-20deg);
+            transition: 0.7s;
+        }
+
+        .premium-card:hover::before {
+            left: 150%;
+            transition: 0.7s ease-in-out;
+        }
+
+        .premium-card:active {
+            transform: scale(0.98); 
+        }
+
+        .premium-card:hover {
+            border-color: rgba(212, 175, 55, 0.6);
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(10, 18, 10, 0.5) 100%);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.1);
+        }
+
+        /* 4. Destaque Especial */
+        .card-highlight {
+            border-color: rgba(212, 175, 55, 0.4);
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(14, 22, 14, 0.6) 100%);
+        }
+        
+        .card-highlight .icon-box {
+            background-color: rgba(212, 175, 55, 0.15);
+            border-color: rgba(212, 175, 55, 0.4);
+        }
+
+        /* Animações */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s cubic-bezier(0.215, 0.610, 0.355, 1.000) forwards;
+        }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .stagger-5 { animation-delay: 0.5s; }
+        .stagger-6 { animation-delay: 0.6s; }
+        .stagger-footer { animation-delay: 0.8s; }
+
+        /* Divisor Decorativo */
+        .gold-line-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            margin: 1.5rem 0;
+        }
+        .gold-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            width: 120px;
+        }
+        .gold-diamond {
+            width: 6px;
+            height: 6px;
+            background: #d4af37;
+            transform: rotate(45deg);
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen flex flex-col items-center px-4 py-10 md:py-16">
+
+    <div class="bg-overlay" id="parallax-bg"></div>
+    <div class="bg-noise"></div>
+
+    <!-- Header -->
+    <header class="text-center mb-10 fade-in-up relative z-10">
+        <div class="mb-2 transition-transform duration-700 hover:scale-105 cursor-default">
+            <!-- SVG Restaurado para o tamanho original (h-28) -->
+            <svg class="h-28 md:h-36 w-auto mx-auto filter drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]" viewBox="0 180 500 140" xmlns="http://www.w3.org/2000/svg">
+                <g transform="translate(250, 250)">
+                    <text x="0" y="-25" text-anchor="middle" fill="#e5c05e" font-family="Cinzel" font-size="22" letter-spacing="8" font-weight="600" style="text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Empório</text>
+                    
+                    <line x1="-190" y1="-32" x2="-95" y2="-32" stroke="#d4af37" stroke-width="1" opacity="0.8">
+                        <animate attributeName="x1" from="-180" to="-190" duration="3s" repeatCount="indefinite" />
+                    </line>
+                    <line x1="95" y1="-32" x2="190" y2="-32" stroke="#d4af37" stroke-width="1" opacity="0.8" />
+                    
+                    <text x="0" y="38" text-anchor="middle" fill="#d4af37" font-family="Cinzel" font-weight="700" font-size="76" letter-spacing="4" style="text-transform: uppercase; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">Le Gadē</text>
+                    
+                    <line x1="-150" y1="55" x2="150" y2="55" stroke="#d4af37" stroke-width="1" opacity="0.6" />
+                </g>
+            </svg>
+        </div>
+
+        <div class="gold-line-container">
+            <div class="gold-line"></div>
+            <div class="gold-diamond"></div>
+            <div class="gold-line"></div>
+        </div>
+        
+        <p class="font-serif italic text-gold-300 tracking-[0.25em] text-[10px] md:text-xs uppercase opacity-90 drop-shadow-md">
+            Gastronomia <span class="mx-1">•</span> Tradição <span class="mx-1">•</span> Arte
+        </p>
+    </header>
+
+    <!-- Links Container -->
+    <nav class="w-full max-w-[22rem] space-y-4 relative z-10">
+        
+        <!-- 1. WhatsApp -->
+        <a href="https://wa.me/558581835251" target="_blank" aria-label="Falar no WhatsApp" class="premium-card fade-in-up stagger-1 flex items-center p-4 rounded-xl group shadow-2xl">
+            <div class="icon-box w-10 h-10 flex flex-shrink-0 items-center justify-center rounded-full bg-gold-400/10 border border-gold-400/20 group-hover:bg-gold-400/20 group-hover:border-gold-400/50 transition-all duration-300">
+                <i class="fab fa-whatsapp text-xl text-gold-400 group-hover:text-white group-hover:scale-110 transition-transform"></i>
+            </div>
+            <div class="flex flex-col flex-grow text-center px-2">
+                <span class="font-display font-bold uppercase tracking-[0.15em] text-sm text-gold-300 group-hover:text-gold-300 transition-colors">Atendimento Concierge</span>
+                <span class="text-[9px] font-sans text-gray-400 uppercase tracking-widest mt-0.5">Via WhatsApp</span>
+            </div>
+            <i class="fas fa-chevron-right text-[10px] text-gold-400/30 group-hover:translate-x-1 transition-transform"></i>
+        </a>
+
+        <!-- 2. Site Oficial (Padronizado) -->
+        <a href="index.html" aria-label="Visitar Site Oficial" class="premium-card fade-in-up stagger-2 flex items-center p-4 rounded-xl group shadow-2xl">
+            <div class="w-10 h-10 flex flex-shrink-0 items-center justify-center rounded-full bg-white/5 border border-white/10 group-hover:border-gold-400/30 transition-all duration-300">
+                <i class="fas fa-globe text-lg text-gray-300 group-hover:text-gold-400 transition-colors"></i>
+            </div>
+            <div class="flex flex-col flex-grow text-center px-2">
+                <span class="font-display font-bold uppercase tracking-[0.15em] text-sm text-gray-200 group-hover:text-gold-300 transition-colors">Site Oficial</span>
+                <span class="text-[9px] font-sans text-gray-400 uppercase tracking-widest mt-0.5">Explore nosso universo</span>
+            </div>
+            <i class="fas fa-chevron-right text-[10px] text-white/10 group-hover:translate-x-1 transition-transform"></i>
+        </a>
+
+        <!-- 3. Catálogo Completo -->
+        <a href="catalogo.html" aria-label="Ver Catálogo Completo" class="premium-card card-highlight fade-in-up stagger-3 flex items-center p-4 rounded-xl group shadow-2xl">
+            <div class="icon-box w-10 h-10 flex flex-shrink-0 items-center justify-center rounded-full bg-gold-400/10 border border-gold-400/20 transition-all duration-300">
+                <i class="fas fa-wine-glass-alt text-lg text-gold-400 group-hover:text-white group-hover:rotate-12 transition-transform"></i>
+            </div>
+            <div class="flex flex-col flex-grow text-center px-2">
+                <span class="font-display font-bold uppercase tracking-[0.15em] text-sm text-white group-hover:text-gold-300 transition-colors">Catálogo Completo</span>
+                <span class="text-[9px] font-sans text-gold-500/80 uppercase tracking-widest mt-0.5">Seleção Exclusiva</span>
+            </div>
+            <i class="fas fa-chevron-right text-[10px] text-gold-400/30 group-hover:translate-x-1 transition-transform"></i>
+        </a>
+
+        <!-- 4. Loja Online (Atualizado) -->
+        <a href="#" target="_blank" aria-label="Loja Online" class="premium-card fade-in-up stagger-4 flex items-center p-4 rounded-xl group shadow-2xl">
+            <div class="w-10 h-10 flex flex-shrink-0 items-center justify-center rounded-full bg-white/5 border border-white/10 group-hover:border-gold-400/30 transition-all duration-300">
+                <i class="fas fa-shopping-bag text-lg text-gray-300 group-hover:text-gold-400 transition-colors"></i>
+            </div>
+            <div class="flex flex-col flex-grow text-center px-2">
+                <span class="font-display font-bold uppercase tracking-[0.15em] text-sm text-gray-200 group-hover:text-gold-300 transition-colors">Loja Online</span>
+                <span class="text-[9px] font-sans text-gray-400 uppercase tracking-widest mt-0.5">Produtos</span>
+            </div>
+            <i class="fas fa-chevron-right text-[10px] text-white/10 group-hover:translate-x-1 transition-transform"></i>
+        </a>
+
+        <!-- 5. Nossa Localização (Padronizado) -->
+        <a href="https://maps.app.goo.gl/..." target="_blank" aria-label="Ver Localização" class="premium-card fade-in-up stagger-5 flex items-center p-4 rounded-xl group shadow-2xl">
+            <div class="w-10 h-10 flex flex-shrink-0 items-center justify-center rounded-full bg-white/5 border border-white/10 group-hover:border-gold-400/30 transition-all duration-300">
+                <i class="fas fa-map-marker-alt text-lg text-gray-300 group-hover:text-gold-400 transition-colors"></i>
+            </div>
+            <div class="flex flex-col flex-grow text-center px-2">
+                <span class="font-display font-bold uppercase tracking-[0.15em] text-sm text-gray-200 group-hover:text-gold-300 transition-colors">Nossa Localização</span>
+                <span class="text-[9px] font-sans text-gray-400 uppercase tracking-widest mt-0.5">Venha nos visitar</span>
+            </div>
+            <i class="fas fa-chevron-right text-[10px] text-white/10 group-hover:translate-x-1 transition-transform"></i>
+        </a>
+
+        <!-- 6. Conte como foi sua experiência (Texto Ajustado) -->
+        <a href="#" target="_blank" aria-label="Nos Avalie" class="premium-card fade-in-up stagger-6 flex items-center p-4 rounded-xl group shadow-2xl">
+            <div class="w-10 h-10 flex flex-shrink-0 items-center justify-center rounded-full bg-white/5 border border-white/10 group-hover:border-gold-400/30 transition-all duration-300">
+                <i class="fas fa-star text-lg text-gray-300 group-hover:text-gold-400 transition-colors"></i>
+            </div>
+            <div class="flex flex-col flex-grow text-center px-2">
+                <span class="font-display font-bold uppercase tracking-[0.10em] text-[11px] md:text-sm text-gray-200 group-hover:text-gold-300 transition-colors">Como foi sua experiência</span>
+                <span class="text-[9px] font-sans text-gray-400 uppercase tracking-widest mt-1">Sua opinião importa</span>
+            </div>
+            <i class="fas fa-chevron-right text-[10px] text-white/10 group-hover:translate-x-1 transition-transform"></i>
+        </a>
+
+    </nav>
+
+    <!-- Footer -->
+    <footer class="mt-12 text-center fade-in-up stagger-footer relative z-10 w-full max-w-sm">
+        <div class="flex justify-center items-center gap-6 mb-8">
+            <!-- 1. Telefone (Corrigido para igualar aos outros) -->
+            <a href="tel:+558581835251" aria-label="Ligar" class="w-12 h-12 flex items-center justify-center rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-black hover:border-gold-400 transition-all duration-300 transform hover:scale-110 shadow-lg bg-black/20">
+                <i class="fas fa-phone text-xl"></i>
+            </a>
+
+            <!-- 2. Instagram -->
+            <a href="https://www.instagram.com/emporiolegade" target="_blank" aria-label="Instagram" class="w-12 h-12 flex items-center justify-center rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-black hover:border-gold-400 transition-all duration-300 transform hover:scale-110 shadow-lg bg-black/20">
+                <i class="fab fa-instagram text-xl"></i>
+            </a>
+            
+            <!-- 3. Email -->
+            <a href="mailto:contato@emporiolegade.com.br" aria-label="Email" class="w-12 h-12 flex items-center justify-center rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-black hover:border-gold-400 transition-all duration-300 transform hover:scale-110 shadow-lg bg-black/20">
+                <i class="far fa-envelope text-xl"></i>
+            </a>
+        </div>
+
+        <div class="border-t border-gold-400/10 pt-6 space-y-2">
+            <p class="text-[9px] uppercase tracking-[0.3em] text-gold-500/80">© 2026 Empório Le Gadē</p>
+            <div class="flex items-center justify-center gap-3 text-[9px] font-serif italic text-gray-500 tracking-widest">
+                <span>CATARINA MALL</span>
+                <span class="text-gold-600">•</span>
+                <span>EUSÉBIO, CE</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const bg = document.getElementById('parallax-bg');
+        let mouseX = 0, mouseY = 0;
+        let currentX = 0, currentY = 0;
+
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        if (!isMobile) {
+            document.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            function animate() {
+                const moveAmount = 15; 
+                currentX += (mouseX * moveAmount - currentX) * 0.05;
+                currentY += (mouseY * moveAmount - currentY) * 0.05;
+
+                bg.style.transform = `scale(1.05) translate(${-currentX}px, ${-currentY}px)`;
+                
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>
