@@ -238,7 +238,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // REMOVIDO: import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase-auth";
         import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         window.products = [];
@@ -255,21 +255,13 @@
         };
         
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        // REMOVIDO: const auth = getAuth(app); -> Não precisamos de Auth aqui para leitura pública
         const db = getFirestore(app);
 
         async function init() {
-            try {
-               await signInAnonymously(auth);
-            } catch(e) {
-                console.error("Auth error:", e);
-            }
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    loadProducts();
-                }
-            });
+            // REMOVIDO: Bloco de signInAnonymously e onAuthStateChanged
+            // Como as regras são "allow read: if true", podemos carregar direto:
+            loadProducts();
 
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('openCart') === 'true') {
