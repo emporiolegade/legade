@@ -55,7 +55,7 @@
         <span id="toast-msg">Operação realizada!</span>
     </div>
 
-    <!-- Custom Confirmation Modal (NOVO) -->
+    <!-- Custom Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="bg-white rounded-lg shadow-2xl p-8 max-w-sm w-full text-center transform scale-90 transition-transform duration-300" id="confirm-box">
             <div class="w-16 h-16 bg-olive-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -279,7 +279,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- AUTH COM PERSISTÊNCIA DE SESSÃO (Logout ao fechar) ---
+        // --- AUTH COM PERSISTÊNCIA DE SESSÃO E CHECAGEM DE ANÔNIMO ---
         
         const loginForm = document.getElementById('firebase-login-form');
         
@@ -308,14 +308,17 @@
             }
         });
 
+        // AQUI ESTÁ A CORREÇÃO DE SEGURANÇA:
         onAuthStateChanged(auth, (user) => {
-            if (user) {
+            // Só libera se o usuário existir E NÃO FOR ANÔNIMO
+            if (user && !user.isAnonymous) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-panel').classList.add('fade-in');
                 document.getElementById('user-email-display').innerText = user.email;
                 loadAdminProducts();
             } else {
+                // Se não tiver user, ou se for anônimo (do catálogo), mostra tela de login
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('admin-panel').classList.add('hidden');
             }
@@ -351,7 +354,6 @@
             closeConfirm();
         });
 
-        // Substituindo funções antigas por versões com Modal
         window.logout = function() {
             showConfirm("Deseja realmente sair do painel?", () => {
                 signOut(auth).then(() => window.location.reload());
@@ -363,7 +365,6 @@
                 try {
                     await deleteDoc(doc(db, 'products', id));
                     showToast("Produto excluído.");
-                    // Se estava editando este produto, limpa o form
                     if(document.getElementById('edit-id').value === id) resetForm();
                 } catch(e) {
                     alert("Erro ao excluir: " + e.message);
@@ -379,20 +380,18 @@
             const q = collection(db, 'products');
             onSnapshot(q, (snapshot) => {
                 const tbody = document.getElementById('products-table-body');
-                const searchVal = document.getElementById('search-table').value.toLowerCase();
                 
                 loadedProducts = [];
                 snapshot.forEach(doc => loadedProducts.push({id: doc.id, ...doc.data()}));
                 
-                // Ordenar por nome (opcional, mas bom pra admin)
                 loadedProducts.sort((a, b) => a.name.localeCompare(b.name));
 
                 renderTable(loadedProducts);
                 document.getElementById('total-products').innerText = `${loadedProducts.length} Itens`;
             }, (error) => {
                 if(error.code === 'permission-denied') {
-                    alert("Sessão expirada.");
-                    window.location.reload();
+                    // Ignora erro de permissão se for anônimo (pois o AuthStateChanged já vai jogar pro login)
+                    // alert("Sessão expirada."); 
                 }
             });
         }
@@ -439,14 +438,12 @@
             });
         }
 
-        // Filtro da tabela
         document.getElementById('search-table').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = loadedProducts.filter(p => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term));
             renderTable(filtered);
         });
 
-        // CREATE / UPDATE Handler
         window.handleFormSubmit = async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-save');
@@ -461,7 +458,6 @@
             const price = document.getElementById('p-price').value;
             const desc = document.getElementById('p-desc').value;
             
-            // Coletar imagens
             const images = [];
             for(let i=1; i<=3; i++) {
                 let imgVal = document.getElementById(`p-img-base64-${i}`).value;
@@ -480,11 +476,9 @@
 
             try {
                 if (editId) {
-                    // MODO EDIÇÃO
                     await updateDoc(doc(db, 'products', editId), productData);
                     showToast("Produto atualizado com sucesso!");
                 } else {
-                    // MODO CRIAÇÃO
                     productData.createdAt = serverTimestamp();
                     await addDoc(collection(db, 'products'), productData);
                     showToast("Produto criado com sucesso!");
@@ -500,41 +494,34 @@
             }
         }
 
-        // EDIT Logic
         window.startEdit = function(id) {
             const product = loadedProducts.find(p => p.id === id);
             if (!product) return;
 
-            // Rolar para cima suavemente
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            // Preencher campos
             document.getElementById('edit-id').value = id;
             document.getElementById('p-name').value = product.name;
             document.getElementById('p-category').value = product.category;
             document.getElementById('p-price').value = product.price;
             document.getElementById('p-desc').value = product.description;
 
-            // Limpar imagens anteriores do form
             for(let i=1; i<=3; i++) {
                 document.getElementById(`p-img-url-${i}`).value = '';
                 document.getElementById(`p-img-base64-${i}`).value = '';
                 document.getElementById(`preview-${i}`).innerHTML = '<i class="fas fa-image text-gray-300 text-lg"></i>';
             }
 
-            // Preencher imagens
             const imgs = product.images || (product.image ? [product.image] : []);
             imgs.forEach((imgUrl, index) => {
                 if(index < 3) {
                     const idx = index + 1;
-                    // Força modo URL para exibir
                     setImgMode(idx, 'url');
                     document.getElementById(`p-img-url-${idx}`).value = imgUrl;
                     document.getElementById(`preview-${idx}`).innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">`;
                 }
             });
 
-            // UI Changes
             document.getElementById('form-title').innerHTML = `<i class="fas fa-edit mr-2 text-gold-400"></i>Editar Produto`;
             document.getElementById('btn-save').innerText = "ATUALIZAR PRODUTO";
             document.getElementById('btn-save').classList.remove('bg-olive-900');
@@ -546,14 +533,12 @@
             document.getElementById('product-form').reset();
             document.getElementById('edit-id').value = '';
             
-            // Reset UI
             document.getElementById('form-title').innerHTML = `<i class="fas fa-plus-circle mr-2 text-gold-400"></i>Novo Produto`;
             document.getElementById('btn-save').innerText = "SALVAR PRODUTO";
             document.getElementById('btn-save').classList.add('bg-olive-900');
             document.getElementById('btn-save').classList.remove('bg-blue-600', 'hover:bg-blue-700');
             document.getElementById('btn-cancel-edit').classList.add('hidden');
 
-            // Reset images
             for(let i=1; i<=3; i++) {
                 document.getElementById(`preview-${i}`).innerHTML = '<i class="fas fa-image text-gray-300 text-lg"></i>';
                 document.getElementById(`p-img-base64-${i}`).value = '';
@@ -569,7 +554,6 @@
     </script>
 
     <script>
-        // Lógica de Imagem (Visual)
         function setImgMode(idx, mode) {
             const btnUrl = document.getElementById(`btn-url-${idx}`);
             const btnFile = document.getElementById(`btn-file-${idx}`);
