@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Empório Le Gadē</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons & CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Lato"', 'sans-serif'],
+                        serif: ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        olive: { 
+                            50: '#f4f7ec', 
+                            100: '#e6eed3', 
+                            500: '#75942e', 
+                            800: '#39491d', 
+                            900: '#303d1c' 
+                        },
+                        gold: { 400: '#d4af37', 500: '#c5a028' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #39491d; border-radius: 3px; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-5 right-5 z-[60] transform translate-x-full transition-transform duration-300 bg-olive-900 text-white px-6 py-4 rounded shadow-2xl flex items-center gap-3">
+        <i class="fas fa-check-circle text-gold-400"></i>
+        <span id="toast-msg">Operação realizada!</span>
+    </div>
+
+    <!-- Custom Confirmation Modal (NOVO) -->
+    <div id="confirm-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-2xl p-8 max-w-sm w-full text-center transform scale-90 transition-transform duration-300" id="confirm-box">
+            <div class="w-16 h-16 bg-olive-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-question text-2xl text-olive-900"></i>
+            </div>
+            <h3 class="text-xl font-serif font-bold text-gray-800 mb-2">Confirmação</h3>
+            <p id="confirm-msg" class="text-gray-600 mb-6 text-sm">Tem certeza que deseja prosseguir?</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="closeConfirm()" class="px-6 py-2 rounded border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors font-bold text-xs uppercase tracking-wider">Cancelar</button>
+                <button id="btn-confirm-yes" class="px-6 py-2 rounded bg-olive-900 text-white hover:bg-olive-800 transition-colors font-bold text-xs uppercase tracking-wider shadow-lg">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-olive-900 flex items-center justify-center p-4">
+        <div class="bg-white p-8 md:p-12 rounded-lg shadow-2xl w-full max-w-md text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-olive-500 to-gold-400"></div>
+            
+            <div class="mb-8">
+                <i class="fas fa-crown text-4xl text-olive-900 mb-2"></i>
+                <h1 class="text-3xl font-serif text-olive-900 font-bold tracking-widest">LE GADĒ</h1>
+                <p class="text-xs text-gray-400 uppercase tracking-[0.3em] mt-1">Área Administrativa</p>
+            </div>
+
+            <form id="firebase-login-form" class="space-y-5 text-left">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-1">Email</label>
+                    <div class="relative mt-1">
+                        <i class="fas fa-envelope absolute left-3 top-3.5 text-gray-400"></i>
+                        <input type="email" id="login-email" placeholder="admin@legade.com" class="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded focus:outline-none focus:border-olive-600 focus:bg-white transition-colors" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-1">Senha</label>
+                    <div class="relative mt-1">
+                        <i class="fas fa-lock absolute left-3 top-3.5 text-gray-400"></i>
+                        <input type="password" id="login-password" placeholder="••••••" class="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded focus:outline-none focus:border-olive-600 focus:bg-white transition-colors" required>
+                    </div>
+                </div>
+                <button type="submit" id="btn-login" class="w-full bg-olive-900 text-white py-3.5 rounded font-bold hover:bg-olive-800 transition-all shadow-lg hover:shadow-olive-900/30 tracking-wide uppercase text-sm mt-2">
+                    Entrar no Painel
+                </button>
+            </form>
+            <p id="login-error" class="text-red-600 text-xs mt-4 font-bold hidden bg-red-50 p-2 rounded border border-red-100"></p>
+        </div>
+    </div>
+
+    <!-- Admin Panel (Protegido) -->
+    <div id="admin-panel" class="hidden flex-1 flex flex-col">
+        <!-- Topbar -->
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+            <div class="container mx-auto px-6 h-16 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-olive-900 rounded-full flex items-center justify-center text-white text-xs font-serif">LG</div>
+                    <span class="font-serif font-bold text-lg text-olive-900 tracking-wide hidden md:block">PAINEL GERENCIAL</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <span id="user-email-display" class="text-xs text-gray-400 font-mono hidden md:inline bg-gray-100 px-3 py-1 rounded-full"></span>
+                    <button onclick="logout()" class="text-xs font-bold uppercase tracking-wider hover:text-red-600 text-gray-500 transition-colors flex items-center gap-2">
+                        Sair <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="container mx-auto p-4 md:p-8 flex flex-col gap-8 max-w-6xl">
+            
+            <!-- FORMULÁRIO (Cima) -->
+            <div class="w-full">
+                <div class="bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden" id="form-container">
+                    <div class="bg-olive-900 p-4 flex justify-between items-center">
+                        <h2 class="text-white font-serif font-bold tracking-wide" id="form-title">
+                            <i class="fas fa-plus-circle mr-2 text-gold-400"></i>Novo Produto
+                        </h2>
+                        <button id="btn-cancel-edit" onclick="resetForm()" class="text-white/70 hover:text-white text-xs uppercase hidden bg-white/10 px-3 py-1 rounded transition-colors" title="Cancelar Edição">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                    
+                    <form id="product-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-5">
+                        <input type="hidden" id="edit-id"> <!-- ID oculto para edição -->
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome do Produto</label>
+                                <input type="text" id="p-name" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded focus:border-olive-600 focus:bg-white outline-none transition-colors text-sm" placeholder="Ex: Vinho Tinto..." required>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Categoria</label>
+                                <select id="p-category" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded focus:border-olive-600 outline-none text-sm cursor-pointer">
+                                    <option value="Antepastos">Antepastos</option>
+                                    <option value="Biscoitos Gourmets">Biscoitos Gourmets</option>
+                                    <option value="Cachaça">Cachaça</option>
+                                    <option value="Carnes">Carnes</option>
+                                    <option value="Chocolates">Chocolates</option>
+                                    <option value="Decor">Decor</option>
+                                    <option value="Geléias">Geléias</option>
+                                    <option value="Gins">Gins</option>
+                                    <option value="Licores">Licores</option>
+                                    <option value="Massas">Massas</option>
+                                    <option value="Molhos">Molhos</option>
+                                    <option value="Taças e Copos">Taças e Copos</option>
+                                    <option value="Vinhos">Vinhos</option>
+                                    <option value="Whisky">Whisky</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Preço (R$)</label>
+                                <input type="number" step="0.01" id="p-price" placeholder="0.00" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded focus:border-olive-600 outline-none text-sm">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Descrição</label>
+                            <textarea id="p-desc" rows="2" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded focus:border-olive-600 outline-none text-sm resize-none" placeholder="Detalhes do produto..."></textarea>
+                        </div>
+
+                        <!-- SECTION FOTOS -->
+                        <div class="border-t border-gray-100 pt-4">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-3 flex items-center justify-between">
+                                <span>Fotos do Produto</span>
+                                <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-400">Max: 3</span>
+                            </label>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="photo-inputs-container">
+                                <!-- Loop gerado via JS para 3 inputs de foto -->
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-save" class="w-full bg-olive-900 text-white py-3 rounded font-bold hover:bg-olive-800 transition-all shadow-lg hover:shadow-olive-900/30 uppercase text-sm tracking-wide mt-2">
+                            Salvar Produto
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- LISTA (Baixo) -->
+            <div class="w-full">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-full">
+                    <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center bg-gray-50/50 gap-4">
+                        <div>
+                            <h2 class="text-xl font-serif font-bold text-gray-800">Inventário</h2>
+                            <p class="text-xs text-gray-500 mt-1">Gerencie os itens do catálogo.</p>
+                        </div>
+                        <div class="flex items-center gap-3 w-full md:w-auto">
+                            <div class="relative w-full md:w-64">
+                                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+                                <input type="text" id="search-table" placeholder="Filtrar por nome ou categoria..." class="w-full pl-8 pr-3 py-2 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-olive-600">
+                            </div>
+                            <span id="total-products" class="text-xs font-bold bg-olive-100 text-olive-800 px-3 py-1.5 rounded-full border border-olive-200 whitespace-nowrap">0 Itens</span>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
+                                <tr>
+                                    <th class="p-4 w-20">Foto</th>
+                                    <th class="p-4">Nome</th>
+                                    <th class="p-4">Categoria</th>
+                                    <th class="p-4">Preço</th>
+                                    <th class="p-4 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table-body" class="text-sm divide-y divide-gray-100">
+                                <tr><td colspan="5" class="p-8 text-center text-gray-400 italic">Carregando catálogo...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template para inputs de foto (gerado via JS) -->
+    <script>
+        const container = document.getElementById('photo-inputs-container');
+        for(let i=1; i<=3; i++) {
+            const label = i === 1 ? 'Principal' : `Foto ${i}`;
+            container.innerHTML += `
+                <div class="flex flex-col gap-2 p-2 border border-gray-100 rounded bg-gray-50/50">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">${label}</span>
+                    <div class="flex text-[10px]">
+                        <button type="button" onclick="setImgMode(${i}, 'url')" id="btn-url-${i}" class="flex-1 py-1 rounded-l border border-r-0 bg-olive-50 text-olive-900 font-bold border-olive-200 transition-colors">Link</button>
+                        <button type="button" onclick="setImgMode(${i}, 'file')" id="btn-file-${i}" class="flex-1 py-1 rounded-r border bg-white text-gray-400 border-gray-200 transition-colors">Upload</button>
+                    </div>
+                    <input type="text" id="p-img-url-${i}" placeholder="https://..." class="w-full p-1.5 border rounded text-xs bg-white focus:border-olive-400 transition-colors outline-none">
+                    <input type="file" id="p-img-file-${i}" accept="image/*" class="w-full p-1 border rounded text-xs hidden" onchange="convertBase64(this, ${i})">
+                    <input type="hidden" id="p-img-base64-${i}">
+                    
+                    <div id="preview-${i}" class="w-full h-20 bg-gray-100 rounded border border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
+                        <i class="fas fa-image text-gray-300 text-lg"></i>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+
+    <!-- Firebase SDKs & Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // CONFIGURAÇÃO
+        const firebaseConfig = {
+          apiKey: "AIzaSyCj8pMsu-pA6be_rcNs1zwNuSu9_cgPCM8",
+          authDomain: "emporio-le-gade.firebaseapp.com",
+          projectId: "emporio-le-gade",
+          storageBucket: "emporio-le-gade.firebasestorage.app",
+          messagingSenderId: "620945240688",
+          appId: "1:620945240688:web:7192e3da3cf256547e7ab5",
+          measurementId: "G-CKR1SYRNNK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- AUTH COM PERSISTÊNCIA DE SESSÃO (Logout ao fechar) ---
+        
+        const loginForm = document.getElementById('firebase-login-form');
+        
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorMsg = document.getElementById('login-error');
+            const btn = document.getElementById('btn-login');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Acessando...';
+            errorMsg.classList.add('hidden');
+
+            try {
+                // Configura para deslogar ao fechar a aba
+                await setPersistence(auth, browserSessionPersistence);
+                await signInWithEmailAndPassword(auth, email, password);
+                // Redirecionamento gerido pelo onAuthStateChanged
+            } catch (error) {
+                console.error(error);
+                errorMsg.innerText = "Email ou senha incorretos.";
+                errorMsg.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerText = "ENTRAR NO PAINEL";
+            }
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.add('fade-in');
+                document.getElementById('user-email-display').innerText = user.email;
+                loadAdminProducts();
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.add('hidden');
+            }
+        });
+
+        // --- LÓGICA DO MODAL DE CONFIRMAÇÃO ---
+        let onConfirm = null;
+
+        window.showConfirm = function(msg, callback) {
+            document.getElementById('confirm-msg').innerText = msg;
+            onConfirm = callback;
+            
+            const modal = document.getElementById('confirm-modal');
+            const box = document.getElementById('confirm-box');
+            
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            box.classList.remove('scale-90');
+            box.classList.add('scale-100');
+        }
+
+        window.closeConfirm = function() {
+            const modal = document.getElementById('confirm-modal');
+            const box = document.getElementById('confirm-box');
+            
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-90');
+            onConfirm = null;
+        }
+
+        document.getElementById('btn-confirm-yes').addEventListener('click', () => {
+            if(onConfirm) onConfirm();
+            closeConfirm();
+        });
+
+        // Substituindo funções antigas por versões com Modal
+        window.logout = function() {
+            showConfirm("Deseja realmente sair do painel?", () => {
+                signOut(auth).then(() => window.location.reload());
+            });
+        }
+
+        window.deleteProduct = async function(id) {
+            showConfirm("Tem certeza que deseja excluir este produto? Essa ação não pode ser desfeita.", async () => {
+                try {
+                    await deleteDoc(doc(db, 'products', id));
+                    showToast("Produto excluído.");
+                    // Se estava editando este produto, limpa o form
+                    if(document.getElementById('edit-id').value === id) resetForm();
+                } catch(e) {
+                    alert("Erro ao excluir: " + e.message);
+                }
+            });
+        }
+
+        // --- CRUD DE PRODUTOS ---
+
+        let loadedProducts = [];
+
+        window.loadAdminProducts = function() {
+            const q = collection(db, 'products');
+            onSnapshot(q, (snapshot) => {
+                const tbody = document.getElementById('products-table-body');
+                const searchVal = document.getElementById('search-table').value.toLowerCase();
+                
+                loadedProducts = [];
+                snapshot.forEach(doc => loadedProducts.push({id: doc.id, ...doc.data()}));
+                
+                // Ordenar por nome (opcional, mas bom pra admin)
+                loadedProducts.sort((a, b) => a.name.localeCompare(b.name));
+
+                renderTable(loadedProducts);
+                document.getElementById('total-products').innerText = `${loadedProducts.length} Itens`;
+            }, (error) => {
+                if(error.code === 'permission-denied') {
+                    alert("Sessão expirada.");
+                    window.location.reload();
+                }
+            });
+        }
+
+        function renderTable(products) {
+            const tbody = document.getElementById('products-table-body');
+            tbody.innerHTML = '';
+
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Nenhum produto encontrado.</td></tr>';
+                return;
+            }
+
+            products.forEach(p => {
+                let thumb = 'https://via.placeholder.com/50';
+                if (p.images && p.images.length > 0) thumb = p.images[0];
+                else if (p.image) thumb = p.image;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors group";
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="w-12 h-12 rounded overflow-hidden border border-gray-200 bg-white shadow-sm">
+                            <img src="${thumb}" class="w-full h-full object-cover">
+                        </div>
+                    </td>
+                    <td class="p-4 font-bold text-gray-700">${p.name}</td>
+                    <td class="p-4">
+                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs uppercase font-bold tracking-wider">${p.category}</span>
+                    </td>
+                    <td class="p-4 font-mono text-olive-900 font-bold text-sm">${p.price ? 'R$ ' + parseFloat(p.price).toFixed(2) : '-'}</td>
+                    <td class="p-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="startEdit('${p.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-200 p-2 rounded w-8 h-8 flex items-center justify-center transition-all shadow-sm" title="Editar">
+                                <i class="fas fa-pencil-alt text-xs"></i>
+                            </button>
+                            <button onclick="deleteProduct('${p.id}')" class="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 p-2 rounded w-8 h-8 flex items-center justify-center transition-all shadow-sm" title="Excluir">
+                                <i class="fas fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Filtro da tabela
+        document.getElementById('search-table').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = loadedProducts.filter(p => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term));
+            renderTable(filtered);
+        });
+
+        // CREATE / UPDATE Handler
+        window.handleFormSubmit = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save');
+            const originalText = btn.innerText;
+            const editId = document.getElementById('edit-id').value;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+            const name = document.getElementById('p-name').value;
+            const category = document.getElementById('p-category').value;
+            const price = document.getElementById('p-price').value;
+            const desc = document.getElementById('p-desc').value;
+            
+            // Coletar imagens
+            const images = [];
+            for(let i=1; i<=3; i++) {
+                let imgVal = document.getElementById(`p-img-base64-${i}`).value;
+                if(!imgVal) imgVal = document.getElementById(`p-img-url-${i}`).value;
+                if(imgVal && imgVal.trim() !== "") images.push(imgVal);
+            }
+
+            const productData = {
+                name,
+                category,
+                price,
+                description: desc,
+                images: images,
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                if (editId) {
+                    // MODO EDIÇÃO
+                    await updateDoc(doc(db, 'products', editId), productData);
+                    showToast("Produto atualizado com sucesso!");
+                } else {
+                    // MODO CRIAÇÃO
+                    productData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'products'), productData);
+                    showToast("Produto criado com sucesso!");
+                }
+                
+                resetForm();
+            } catch (err) {
+                console.error(err);
+                alert("Erro: " + err.message);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // EDIT Logic
+        window.startEdit = function(id) {
+            const product = loadedProducts.find(p => p.id === id);
+            if (!product) return;
+
+            // Rolar para cima suavemente
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Preencher campos
+            document.getElementById('edit-id').value = id;
+            document.getElementById('p-name').value = product.name;
+            document.getElementById('p-category').value = product.category;
+            document.getElementById('p-price').value = product.price;
+            document.getElementById('p-desc').value = product.description;
+
+            // Limpar imagens anteriores do form
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`p-img-url-${i}`).value = '';
+                document.getElementById(`p-img-base64-${i}`).value = '';
+                document.getElementById(`preview-${i}`).innerHTML = '<i class="fas fa-image text-gray-300 text-lg"></i>';
+            }
+
+            // Preencher imagens
+            const imgs = product.images || (product.image ? [product.image] : []);
+            imgs.forEach((imgUrl, index) => {
+                if(index < 3) {
+                    const idx = index + 1;
+                    // Força modo URL para exibir
+                    setImgMode(idx, 'url');
+                    document.getElementById(`p-img-url-${idx}`).value = imgUrl;
+                    document.getElementById(`preview-${idx}`).innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">`;
+                }
+            });
+
+            // UI Changes
+            document.getElementById('form-title').innerHTML = `<i class="fas fa-edit mr-2 text-gold-400"></i>Editar Produto`;
+            document.getElementById('btn-save').innerText = "ATUALIZAR PRODUTO";
+            document.getElementById('btn-save').classList.remove('bg-olive-900');
+            document.getElementById('btn-save').classList.add('bg-blue-600', 'hover:bg-blue-700');
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+        }
+
+        window.resetForm = function() {
+            document.getElementById('product-form').reset();
+            document.getElementById('edit-id').value = '';
+            
+            // Reset UI
+            document.getElementById('form-title').innerHTML = `<i class="fas fa-plus-circle mr-2 text-gold-400"></i>Novo Produto`;
+            document.getElementById('btn-save').innerText = "SALVAR PRODUTO";
+            document.getElementById('btn-save').classList.add('bg-olive-900');
+            document.getElementById('btn-save').classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+
+            // Reset images
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`preview-${i}`).innerHTML = '<i class="fas fa-image text-gray-300 text-lg"></i>';
+                document.getElementById(`p-img-base64-${i}`).value = '';
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('translate-x-full');
+            setTimeout(() => t.classList.add('translate-x-full'), 3000);
+        }
+    </script>
+
+    <script>
+        // Lógica de Imagem (Visual)
+        function setImgMode(idx, mode) {
+            const btnUrl = document.getElementById(`btn-url-${idx}`);
+            const btnFile = document.getElementById(`btn-file-${idx}`);
+            const inputUrl = document.getElementById(`p-img-url-${idx}`);
+            const inputFile = document.getElementById(`p-img-file-${idx}`);
+
+            if(mode === 'url') {
+                btnUrl.className = "flex-1 py-1 rounded-l border border-r-0 bg-olive-50 text-olive-900 font-bold border-olive-200 transition-colors";
+                btnFile.className = "flex-1 py-1 rounded-r border bg-white text-gray-400 border-gray-200 transition-colors";
+                inputUrl.classList.remove('hidden');
+                inputFile.classList.add('hidden');
+            } else {
+                btnFile.className = "flex-1 py-1 rounded-r border bg-olive-50 text-olive-900 font-bold border-olive-200 transition-colors";
+                btnUrl.className = "flex-1 py-1 rounded-l border bg-white text-gray-400 border-gray-200 transition-colors";
+                inputFile.classList.remove('hidden');
+                inputUrl.classList.add('hidden');
+            }
+        }
+
+        function convertBase64(input, idx) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if(file.size > 800000) {
+                    alert("Imagem muito grande! Use arquivos menores que 800KB.");
+                    input.value = "";
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById(`p-img-base64-${idx}`).value = e.target.result;
+                    document.getElementById(`preview-${idx}`).innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        [1, 2, 3].forEach(idx => {
+            document.getElementById(`p-img-url-${idx}`).addEventListener('input', function(e) {
+                if(e.target.value) {
+                    document.getElementById(`preview-${idx}`).innerHTML = `<img src="${e.target.value}" class="w-full h-full object-cover" onerror="this.src=''">`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
