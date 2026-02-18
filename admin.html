@@ -28,6 +28,7 @@
                             50: '#f4f7ec', 
                             100: '#e6eed3', 
                             500: '#75942e', 
+                            600: '#5a7522',
                             800: '#39491d', 
                             900: '#303d1c' 
                         },
@@ -38,11 +39,9 @@
         }
     </script>
     <style>
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #39491d; border-radius: 3px; }
-        
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -74,29 +73,21 @@
     <div id="login-screen" class="fixed inset-0 z-50 bg-olive-900 flex items-center justify-center p-4">
         <div class="bg-white p-8 md:p-12 rounded-lg shadow-2xl w-full max-w-md text-center relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-olive-500 to-gold-400"></div>
-            
             <div class="mb-8">
                 <i class="fas fa-crown text-4xl text-olive-900 mb-2"></i>
                 <h1 class="text-3xl font-serif text-olive-900 font-bold tracking-widest">LE GADĒ</h1>
                 <p class="text-xs text-gray-400 uppercase tracking-[0.3em] mt-1">Área Administrativa</p>
             </div>
-
             <form id="firebase-login-form" class="space-y-5 text-left">
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase ml-1">Email</label>
-                    <div class="relative mt-1">
-                        <i class="fas fa-envelope absolute left-3 top-3.5 text-gray-400"></i>
-                        <input type="email" id="login-email" placeholder="admin@legade.com" class="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded focus:outline-none focus:border-olive-600 focus:bg-white transition-colors" required>
-                    </div>
+                    <input type="email" id="login-email" placeholder="admin@legade.com" class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded focus:border-olive-600 outline-none" required>
                 </div>
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase ml-1">Senha</label>
-                    <div class="relative mt-1">
-                        <i class="fas fa-lock absolute left-3 top-3.5 text-gray-400"></i>
-                        <input type="password" id="login-password" placeholder="••••••" class="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded focus:outline-none focus:border-olive-600 focus:bg-white transition-colors" required>
-                    </div>
+                    <input type="password" id="login-password" placeholder="••••••" class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded focus:border-olive-600 outline-none" required>
                 </div>
-                <button type="submit" id="btn-login" class="w-full bg-olive-900 text-white py-3.5 rounded font-bold hover:bg-olive-800 transition-all shadow-lg hover:shadow-olive-900/30 tracking-wide uppercase text-sm mt-2">
+                <button type="submit" id="btn-login" class="w-full bg-olive-900 text-white py-3.5 rounded font-bold hover:bg-olive-800 transition-all shadow-lg uppercase text-sm mt-2">
                     Entrar no Painel
                 </button>
             </form>
@@ -104,7 +95,7 @@
         </div>
     </div>
 
-    <!-- Admin Panel (Protegido) -->
+    <!-- Admin Panel -->
     <div id="admin-panel" class="hidden flex-1 flex flex-col">
         <!-- Topbar -->
         <nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
@@ -113,7 +104,6 @@
                     <div class="w-8 h-8 bg-olive-900 rounded-full flex items-center justify-center text-white text-xs font-serif">LG</div>
                     <span class="font-serif font-bold text-lg text-olive-900 tracking-wide hidden md:block">PAINEL GERENCIAL</span>
                 </div>
-                
                 <div class="flex items-center gap-4">
                     <span id="user-email-display" class="text-xs text-gray-400 font-mono hidden md:inline bg-gray-100 px-3 py-1 rounded-full"></span>
                     <button onclick="logout()" class="text-xs font-bold uppercase tracking-wider hover:text-red-600 text-gray-500 transition-colors flex items-center gap-2">
@@ -123,23 +113,36 @@
             </div>
         </nav>
 
-        <!-- Main Content -->
-        <div class="container mx-auto p-4 md:p-8 flex flex-col gap-8 max-w-6xl">
+        <!-- Tabs Navigation -->
+        <div class="container mx-auto px-4 mt-6 max-w-6xl">
+            <div class="flex border-b border-gray-200 gap-1">
+                <button onclick="switchTab('products')" id="tab-products" class="px-6 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-olive-900 text-olive-900 transition-colors bg-white rounded-t-lg">
+                    <i class="fas fa-box-open mr-2"></i> Produtos
+                </button>
+                <button onclick="switchTab('categories')" id="tab-categories" class="px-6 py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-gray-400 hover:text-olive-600 transition-colors bg-gray-50 rounded-t-lg">
+                    <i class="fas fa-tags mr-2"></i> Categorias
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="container mx-auto p-4 md:p-8 flex flex-col gap-8 max-w-6xl relative">
             
-            <!-- FORMULÁRIO (Cima) -->
-            <div class="w-full">
-                <div class="bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden" id="form-container">
+            <!-- === TAB: PRODUTOS === -->
+            <div id="view-products" class="flex flex-col gap-8 fade-in">
+                <!-- FORMULÁRIO PRODUTO -->
+                <div class="bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden">
                     <div class="bg-olive-900 p-4 flex justify-between items-center">
                         <h2 class="text-white font-serif font-bold tracking-wide" id="form-title">
                             <i class="fas fa-plus-circle mr-2 text-gold-400"></i>Novo Produto
                         </h2>
-                        <button id="btn-cancel-edit" onclick="resetForm()" class="text-white/70 hover:text-white text-xs uppercase hidden bg-white/10 px-3 py-1 rounded transition-colors" title="Cancelar Edição">
+                        <button id="btn-cancel-edit" onclick="resetForm()" class="text-white/70 hover:text-white text-xs uppercase hidden bg-white/10 px-3 py-1 rounded transition-colors">
                             <i class="fas fa-times"></i> Cancelar
                         </button>
                     </div>
                     
-                    <form id="product-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-5">
-                        <input type="hidden" id="edit-id"> <!-- ID oculto para edição -->
+                    <form id="product-form" onsubmit="handleProductSubmit(event)" class="p-6 space-y-5">
+                        <input type="hidden" id="edit-id">
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div class="md:col-span-2">
@@ -149,22 +152,14 @@
 
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Categoria</label>
-                                <select id="p-category" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded focus:border-olive-600 outline-none text-sm cursor-pointer">
-                                    <option value="Antepastos">Antepastos</option>
-                                    <option value="Biscoitos Gourmets">Biscoitos Gourmets</option>
-                                    <option value="Cachaça">Cachaça</option>
-                                    <option value="Carnes">Carnes</option>
-                                    <option value="Chocolates">Chocolates</option>
-                                    <option value="Decor">Decor</option>
-                                    <option value="Geléias">Geléias</option>
-                                    <option value="Gins">Gins</option>
-                                    <option value="Licores">Licores</option>
-                                    <option value="Massas">Massas</option>
-                                    <option value="Molhos">Molhos</option>
-                                    <option value="Taças e Copos">Taças e Copos</option>
-                                    <option value="Vinhos">Vinhos</option>
-                                    <option value="Whisky">Whisky</option>
-                                </select>
+                                <div class="flex gap-2">
+                                    <select id="p-category" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded focus:border-olive-600 outline-none text-sm cursor-pointer" required>
+                                        <option value="" disabled selected>Carregando...</option>
+                                    </select>
+                                    <button type="button" onclick="switchTab('categories')" class="px-3 bg-olive-100 text-olive-700 rounded border border-olive-200 hover:bg-olive-200" title="Gerenciar Categorias">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Preço (R$)</label>
@@ -183,22 +178,19 @@
                                 <span>Fotos do Produto</span>
                                 <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-400">Max: 3</span>
                             </label>
-                            
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="photo-inputs-container">
-                                <!-- Loop gerado via JS para 3 inputs de foto -->
+                                <!-- JS Gera inputs -->
                             </div>
                         </div>
 
-                        <button type="submit" id="btn-save" class="w-full bg-olive-900 text-white py-3 rounded font-bold hover:bg-olive-800 transition-all shadow-lg hover:shadow-olive-900/30 uppercase text-sm tracking-wide mt-2">
+                        <button type="submit" id="btn-save" class="w-full bg-olive-900 text-white py-3 rounded font-bold hover:bg-olive-800 transition-all shadow-lg uppercase text-sm tracking-wide mt-2">
                             Salvar Produto
                         </button>
                     </form>
                 </div>
-            </div>
 
-            <!-- LISTA (Baixo) -->
-            <div class="w-full">
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-full">
+                <!-- LISTA PRODUTOS -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col">
                     <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center bg-gray-50/50 gap-4">
                         <div>
                             <h2 class="text-xl font-serif font-bold text-gray-800">Inventário</h2>
@@ -207,12 +199,11 @@
                         <div class="flex items-center gap-3 w-full md:w-auto">
                             <div class="relative w-full md:w-64">
                                 <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
-                                <input type="text" id="search-table" placeholder="Filtrar por nome ou categoria..." class="w-full pl-8 pr-3 py-2 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-olive-600">
+                                <input type="text" id="search-table" placeholder="Filtrar..." class="w-full pl-8 pr-3 py-2 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-olive-600">
                             </div>
                             <span id="total-products" class="text-xs font-bold bg-olive-100 text-olive-800 px-3 py-1.5 rounded-full border border-olive-200 whitespace-nowrap">0 Itens</span>
                         </div>
                     </div>
-                    
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
@@ -231,6 +222,67 @@
                     </div>
                 </div>
             </div>
+
+            <!-- === TAB: CATEGORIAS === -->
+            <div id="view-categories" class="hidden flex-col gap-8 fade-in">
+                <!-- Alerta de Permissão -->
+                <div id="permission-alert" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-sm">
+                    <p class="font-bold">Acesso Negado!</p>
+                    <p class="text-sm">Você precisa atualizar as "Regras" (Rules) no Console do Firebase para permitir leitura/escrita na coleção 'categories'.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Form Nova Categoria -->
+                    <div class="bg-white rounded-lg shadow-lg border border-gray-100 md:col-span-1 h-fit">
+                        <div class="bg-olive-800 p-4">
+                            <h2 class="text-white font-serif font-bold tracking-wide text-sm">
+                                <i class="fas fa-tag mr-2 text-gold-400"></i>Nova Categoria
+                            </h2>
+                        </div>
+                        <form id="category-form" onsubmit="handleCategorySubmit(event)" class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome da Categoria</label>
+                                <input type="text" id="cat-name" class="w-full p-3 bg-gray-50 border border-gray-200 rounded focus:border-olive-600 focus:bg-white outline-none transition-colors text-sm uppercase" placeholder="EX: VINHOS" required>
+                                <p class="text-[10px] text-gray-400 mt-1">Este nome aparecerá nos filtros.</p>
+                            </div>
+                            <button type="submit" id="btn-save-cat" class="w-full bg-olive-800 text-white py-3 rounded font-bold hover:bg-olive-700 transition-all shadow-lg uppercase text-xs tracking-wide">
+                                Adicionar Categoria
+                            </button>
+                        </form>
+
+                         <!-- BOTÃO RESTAURAR PADRÕES (NOVO) -->
+                         <div class="px-6 pb-6 pt-0">
+                            <div class="border-t border-gray-100 pt-4">
+                                <p class="text-xs text-gray-400 mb-2 text-center">Banco vazio? Restaure os padrões.</p>
+                                <button onclick="restoreDefaultCategories()" id="btn-restore" class="w-full bg-gray-100 text-gray-600 py-2 rounded border border-gray-200 hover:bg-gray-200 transition-colors uppercase text-xs font-bold">
+                                    <i class="fas fa-sync-alt mr-1"></i> Restaurar Padrões
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista Categorias -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 md:col-span-2">
+                        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                             <h2 class="text-lg font-serif font-bold text-gray-800">Categorias Ativas</h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
+                                    <tr>
+                                        <th class="p-4">Nome</th>
+                                        <th class="p-4 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categories-table-body" class="text-sm divide-y divide-gray-100">
+                                    <tr><td colspan="2" class="p-4 text-center text-gray-400">Carregando...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -249,7 +301,6 @@
                     <input type="text" id="p-img-url-${i}" placeholder="https://..." class="w-full p-1.5 border rounded text-xs bg-white focus:border-olive-400 transition-colors outline-none">
                     <input type="file" id="p-img-file-${i}" accept="image/*" class="w-full p-1 border rounded text-xs hidden" onchange="convertBase64(this, ${i})">
                     <input type="hidden" id="p-img-base64-${i}">
-                    
                     <div id="preview-${i}" class="w-full h-20 bg-gray-100 rounded border border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
                         <i class="fas fa-image text-gray-300 text-lg"></i>
                     </div>
@@ -262,9 +313,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURAÇÃO
+        // CONFIG
         const firebaseConfig = {
           apiKey: "AIzaSyCj8pMsu-pA6be_rcNs1zwNuSu9_cgPCM8",
           authDomain: "emporio-le-gade.firebaseapp.com",
@@ -279,125 +330,222 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- AUTH COM PERSISTÊNCIA DE SESSÃO E CHECAGEM DE ANÔNIMO ---
-        
+        // DEFAULT CATEGORIES LIST
+        const defaultCategories = [
+            "Antepastos", "Biscoitos Gourmets", "Cachaça", "Carnes", 
+            "Chocolates", "Decor", "Geléias", "Gins", "Licores", 
+            "Massas", "Molhos", "Taças e Copos", "Vinhos", "Whisky"
+        ];
+
+        // --- AUTH ---
         const loginForm = document.getElementById('firebase-login-form');
         
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-            const errorMsg = document.getElementById('login-error');
             const btn = document.getElementById('btn-login');
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Acessando...';
-            errorMsg.classList.add('hidden');
+            document.getElementById('login-error').classList.add('hidden');
 
             try {
-                // Configura para deslogar ao fechar a aba
                 await setPersistence(auth, browserSessionPersistence);
                 await signInWithEmailAndPassword(auth, email, password);
-                // Redirecionamento gerido pelo onAuthStateChanged
             } catch (error) {
-                console.error(error);
-                errorMsg.innerText = "Email ou senha incorretos.";
-                errorMsg.classList.remove('hidden');
+                document.getElementById('login-error').innerText = "Email ou senha incorretos.";
+                document.getElementById('login-error').classList.remove('hidden');
                 btn.disabled = false;
                 btn.innerText = "ENTRAR NO PAINEL";
             }
         });
 
-        // AQUI ESTÁ A CORREÇÃO DE SEGURANÇA:
         onAuthStateChanged(auth, (user) => {
-            // Só libera se o usuário existir E NÃO FOR ANÔNIMO
             if (user && !user.isAnonymous) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-panel').classList.add('fade-in');
                 document.getElementById('user-email-display').innerText = user.email;
-                loadAdminProducts();
+                initAdmin();
             } else {
-                // Se não tiver user, ou se for anônimo (do catálogo), mostra tela de login
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('admin-panel').classList.add('hidden');
             }
         });
 
-        // --- LÓGICA DO MODAL DE CONFIRMAÇÃO ---
-        let onConfirm = null;
-
-        window.showConfirm = function(msg, callback) {
-            document.getElementById('confirm-msg').innerText = msg;
-            onConfirm = callback;
-            
-            const modal = document.getElementById('confirm-modal');
-            const box = document.getElementById('confirm-box');
-            
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            box.classList.remove('scale-90');
-            box.classList.add('scale-100');
+        function initAdmin() {
+            loadCategories();
+            loadProducts();
         }
 
-        window.closeConfirm = function() {
-            const modal = document.getElementById('confirm-modal');
-            const box = document.getElementById('confirm-box');
-            
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            box.classList.remove('scale-100');
-            box.classList.add('scale-90');
-            onConfirm = null;
-        }
-
-        document.getElementById('btn-confirm-yes').addEventListener('click', () => {
-            if(onConfirm) onConfirm();
-            closeConfirm();
-        });
-
-        window.logout = function() {
-            showConfirm("Deseja realmente sair do painel?", () => {
-                signOut(auth).then(() => window.location.reload());
-            });
-        }
-
-        window.deleteProduct = async function(id) {
-            showConfirm("Tem certeza que deseja excluir este produto? Essa ação não pode ser desfeita.", async () => {
-                try {
-                    await deleteDoc(doc(db, 'products', id));
-                    showToast("Produto excluído.");
-                    if(document.getElementById('edit-id').value === id) resetForm();
-                } catch(e) {
-                    alert("Erro ao excluir: " + e.message);
+        // --- ABA DE NAVEGAÇÃO ---
+        window.switchTab = function(tabName) {
+            const tabs = ['products', 'categories'];
+            tabs.forEach(t => {
+                const content = document.getElementById(`view-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tabName) {
+                    content.classList.remove('hidden');
+                    content.classList.add('flex');
+                    btn.classList.add('border-olive-900', 'text-olive-900', 'bg-white');
+                    btn.classList.remove('border-transparent', 'text-gray-400', 'bg-gray-50');
+                } else {
+                    content.classList.add('hidden');
+                    content.classList.remove('flex');
+                    btn.classList.remove('border-olive-900', 'text-olive-900', 'bg-white');
+                    btn.classList.add('border-transparent', 'text-gray-400', 'bg-gray-50');
                 }
             });
         }
 
-        // --- CRUD DE PRODUTOS ---
+        // --- GESTÃO DE CATEGORIAS ---
+        window.loadedCategories = [];
 
-        let loadedProducts = [];
-
-        window.loadAdminProducts = function() {
-            const q = collection(db, 'products');
+        function loadCategories() {
+            // Ordena alfabeticamente
+            const q = query(collection(db, 'categories'), orderBy('name', 'asc'));
+            
             onSnapshot(q, (snapshot) => {
-                const tbody = document.getElementById('products-table-body');
-                
-                loadedProducts = [];
-                snapshot.forEach(doc => loadedProducts.push({id: doc.id, ...doc.data()}));
-                
-                loadedProducts.sort((a, b) => a.name.localeCompare(b.name));
+                // Esconde alerta se funcionar
+                document.getElementById('permission-alert').classList.add('hidden');
 
-                renderTable(loadedProducts);
-                document.getElementById('total-products').innerText = `${loadedProducts.length} Itens`;
+                const tbody = document.getElementById('categories-table-body');
+                const select = document.getElementById('p-category');
+                
+                window.loadedCategories = [];
+                snapshot.forEach(doc => window.loadedCategories.push({id: doc.id, ...doc.data()}));
+                
+                // 1. Renderizar Tabela de Gestão
+                tbody.innerHTML = '';
+                if(window.loadedCategories.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="2" class="p-4 text-center text-gray-400">Nenhuma categoria cadastrada. Use o botão "Restaurar Padrões".</td></tr>';
+                } else {
+                    window.loadedCategories.forEach(cat => {
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-gray-50 group">
+                                <td class="p-4 font-bold text-gray-700 uppercase">${cat.name}</td>
+                                <td class="p-4 text-right">
+                                    <button onclick="deleteCategory('${cat.id}')" class="text-gray-400 hover:text-red-600 transition-colors p-2" title="Excluir">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // 2. Renderizar Select do Formulário de Produto
+                const currentSelection = select.value;
+                select.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+                window.loadedCategories.forEach(cat => {
+                    select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+                });
+                if(currentSelection && window.loadedCategories.some(c => c.name === currentSelection)) {
+                    select.value = currentSelection;
+                }
             }, (error) => {
+                console.error("Erro ao carregar categorias:", error);
                 if(error.code === 'permission-denied') {
-                    // Ignora erro de permissão se for anônimo (pois o AuthStateChanged já vai jogar pro login)
-                    // alert("Sessão expirada."); 
+                    document.getElementById('permission-alert').classList.remove('hidden');
+                    document.getElementById('categories-table-body').innerHTML = '<tr><td colspan="2" class="p-4 text-center text-red-500 font-bold">Erro de Permissão. Verifique o console do Firebase.</td></tr>';
                 }
             });
         }
 
-        function renderTable(products) {
+        // Função para Restaurar Padrões
+        window.restoreDefaultCategories = async function() {
+            const btn = document.getElementById('btn-restore');
+            
+            // Verificação básica se já existem muitas
+            if(window.loadedCategories.length > 5) {
+                if(!confirm("Já existem várias categorias. Deseja mesmo tentar adicionar as padrões? Isso pode criar duplicatas se os nomes forem diferentes.")) return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restaurando...';
+
+            let count = 0;
+            try {
+                for (const catName of defaultCategories) {
+                    // Verifica se já existe para não duplicar (case insensitive check no cliente)
+                    const exists = window.loadedCategories.some(c => c.name.toUpperCase() === catName.toUpperCase());
+                    if (!exists) {
+                        await addDoc(collection(db, 'categories'), { 
+                            name: catName,
+                            createdAt: serverTimestamp() 
+                        });
+                        count++;
+                    }
+                }
+                showToast(`${count} categorias restauradas!`);
+            } catch (e) {
+                alert("Erro ao restaurar: " + e.message + "\n\nVerifique se as Regras do Firebase permitem a escrita.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Restaurar Padrões';
+            }
+        }
+
+        window.handleCategorySubmit = async function(e) {
+            e.preventDefault();
+            const input = document.getElementById('cat-name');
+            const name = input.value.trim().toUpperCase(); // Salva sempre maiúsculo para padronizar? Ou Capitalize? User prefere como digitar, mas aqui forçamos uppercase no CSS, vamos salvar original ou uppercase. Vamos de original com trim.
+            // O input tem class uppercase visual, mas o value vem normal.
+            
+            if(!name) return;
+
+            if(window.loadedCategories.some(c => c.name.toUpperCase() === name.toUpperCase())) {
+                alert("Esta categoria já existe.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-save-cat');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+            try {
+                await addDoc(collection(db, 'categories'), { 
+                    name: name, // Salva exatamente como digitado
+                    createdAt: serverTimestamp() 
+                });
+                input.value = '';
+                showToast("Categoria adicionada!");
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao salvar categoria: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "ADICIONAR CATEGORIA";
+            }
+        }
+
+        window.deleteCategory = async function(id) {
+            showConfirm("Excluir esta categoria? Produtos associados a ela NÃO serão excluídos, mas ficarão com a categoria antiga.", async () => {
+                try {
+                    await deleteDoc(doc(db, 'categories', id));
+                    showToast("Categoria removida.");
+                } catch(e) {
+                    alert("Erro: " + e.message);
+                }
+            });
+        }
+
+        // --- GESTÃO DE PRODUTOS ---
+        window.loadedProducts = [];
+
+        function loadProducts() {
+            const q = query(collection(db, 'products'), orderBy('createdAt', 'desc')); 
+            onSnapshot(q, (snapshot) => {
+                window.loadedProducts = [];
+                snapshot.forEach(doc => window.loadedProducts.push({id: doc.id, ...doc.data()}));
+                renderProductTable(window.loadedProducts);
+            });
+        }
+
+        function renderProductTable(products) {
             const tbody = document.getElementById('products-table-body');
+            document.getElementById('total-products').innerText = `${products.length} Itens`;
             tbody.innerHTML = '';
 
             if (products.length === 0) {
@@ -410,41 +558,34 @@
                 if (p.images && p.images.length > 0) thumb = p.images[0];
                 else if (p.image) thumb = p.image;
 
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50 transition-colors group";
-                tr.innerHTML = `
-                    <td class="p-4">
-                        <div class="w-12 h-12 rounded overflow-hidden border border-gray-200 bg-white shadow-sm">
-                            <img src="${thumb}" class="w-full h-full object-cover">
-                        </div>
-                    </td>
-                    <td class="p-4 font-bold text-gray-700">${p.name}</td>
-                    <td class="p-4">
-                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs uppercase font-bold tracking-wider">${p.category}</span>
-                    </td>
-                    <td class="p-4 font-mono text-olive-900 font-bold text-sm">${p.price ? 'R$ ' + parseFloat(p.price).toFixed(2) : '-'}</td>
-                    <td class="p-4 text-right">
-                        <div class="flex justify-end gap-2">
-                            <button onclick="startEdit('${p.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-200 p-2 rounded w-8 h-8 flex items-center justify-center transition-all shadow-sm" title="Editar">
-                                <i class="fas fa-pencil-alt text-xs"></i>
-                            </button>
-                            <button onclick="deleteProduct('${p.id}')" class="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 p-2 rounded w-8 h-8 flex items-center justify-center transition-all shadow-sm" title="Excluir">
-                                <i class="fas fa-trash text-xs"></i>
-                            </button>
-                        </div>
-                    </td>
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition-colors group">
+                        <td class="p-4">
+                            <div class="w-12 h-12 rounded overflow-hidden border border-gray-200 bg-white shadow-sm">
+                                <img src="${thumb}" class="w-full h-full object-cover">
+                            </div>
+                        </td>
+                        <td class="p-4 font-bold text-gray-700">${p.name}</td>
+                        <td class="p-4">
+                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs uppercase font-bold tracking-wider">${p.category || 'Sem Categoria'}</span>
+                        </td>
+                        <td class="p-4 font-mono text-olive-900 font-bold text-sm">${p.price ? 'R$ ' + parseFloat(p.price).toFixed(2) : '-'}</td>
+                        <td class="p-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button onclick="startEdit('${p.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-200 p-2 rounded w-8 h-8 flex items-center justify-center transition-all shadow-sm" title="Editar">
+                                    <i class="fas fa-pencil-alt text-xs"></i>
+                                </button>
+                                <button onclick="deleteProduct('${p.id}')" class="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 p-2 rounded w-8 h-8 flex items-center justify-center transition-all shadow-sm" title="Excluir">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
                 `;
-                tbody.appendChild(tr);
             });
         }
 
-        document.getElementById('search-table').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = loadedProducts.filter(p => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term));
-            renderTable(filtered);
-        });
-
-        window.handleFormSubmit = async function(e) {
+        window.handleProductSubmit = async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-save');
             const originalText = btn.innerText;
@@ -477,13 +618,12 @@
             try {
                 if (editId) {
                     await updateDoc(doc(db, 'products', editId), productData);
-                    showToast("Produto atualizado com sucesso!");
+                    showToast("Produto atualizado!");
                 } else {
                     productData.createdAt = serverTimestamp();
                     await addDoc(collection(db, 'products'), productData);
-                    showToast("Produto criado com sucesso!");
+                    showToast("Produto criado!");
                 }
-                
                 resetForm();
             } catch (err) {
                 console.error(err);
@@ -495,28 +635,28 @@
         }
 
         window.startEdit = function(id) {
-            const product = loadedProducts.find(p => p.id === id);
+            const product = window.loadedProducts.find(p => p.id === id);
             if (!product) return;
-
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             document.getElementById('edit-id').value = id;
             document.getElementById('p-name').value = product.name;
-            document.getElementById('p-category').value = product.category;
+            document.getElementById('p-category').value = product.category || "";
             document.getElementById('p-price').value = product.price;
             document.getElementById('p-desc').value = product.description;
 
+            // Reset imagens
             for(let i=1; i<=3; i++) {
                 document.getElementById(`p-img-url-${i}`).value = '';
                 document.getElementById(`p-img-base64-${i}`).value = '';
                 document.getElementById(`preview-${i}`).innerHTML = '<i class="fas fa-image text-gray-300 text-lg"></i>';
+                setImgMode(i, 'url'); 
             }
 
             const imgs = product.images || (product.image ? [product.image] : []);
             imgs.forEach((imgUrl, index) => {
                 if(index < 3) {
                     const idx = index + 1;
-                    setImgMode(idx, 'url');
                     document.getElementById(`p-img-url-${idx}`).value = imgUrl;
                     document.getElementById(`preview-${idx}`).innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">`;
                 }
@@ -545,6 +685,35 @@
             }
         }
 
+        window.deleteProduct = async function(id) {
+            showConfirm("Excluir produto?", async () => {
+                try {
+                    await deleteDoc(doc(db, 'products', id));
+                    showToast("Produto excluído.");
+                    if(document.getElementById('edit-id').value === id) resetForm();
+                } catch(e) {
+                    alert("Erro: " + e.message);
+                }
+            });
+        }
+
+        window.logout = function() {
+            showConfirm("Sair do painel?", () => {
+                signOut(auth).then(() => window.location.reload());
+            });
+        }
+
+        // Filtro da tabela (Client-side)
+        document.getElementById('search-table').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = window.loadedProducts.filter(p => 
+                p.name.toLowerCase().includes(term) || 
+                (p.category && p.category.toLowerCase().includes(term))
+            );
+            renderProductTable(filtered);
+        });
+
+        // Helpers UI
         function showToast(msg) {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
@@ -553,13 +722,30 @@
         }
     </script>
 
+    <!-- Helpers de Imagem -->
     <script>
+        window.showConfirm = function(msg, callback) {
+            document.getElementById('confirm-msg').innerText = msg;
+            window.onConfirmAction = callback;
+            document.getElementById('confirm-modal').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('confirm-box').classList.remove('scale-90');
+            document.getElementById('confirm-box').classList.add('scale-100');
+        }
+        window.closeConfirm = function() {
+            document.getElementById('confirm-modal').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('confirm-box').classList.remove('scale-100');
+            document.getElementById('confirm-box').classList.add('scale-90');
+            window.onConfirmAction = null;
+        }
+        document.getElementById('btn-confirm-yes').addEventListener('click', () => {
+            if(window.onConfirmAction) window.onConfirmAction();
+            closeConfirm();
+        });
         function setImgMode(idx, mode) {
             const btnUrl = document.getElementById(`btn-url-${idx}`);
             const btnFile = document.getElementById(`btn-file-${idx}`);
             const inputUrl = document.getElementById(`p-img-url-${idx}`);
             const inputFile = document.getElementById(`p-img-file-${idx}`);
-
             if(mode === 'url') {
                 btnUrl.className = "flex-1 py-1 rounded-l border border-r-0 bg-olive-50 text-olive-900 font-bold border-olive-200 transition-colors";
                 btnFile.className = "flex-1 py-1 rounded-r border bg-white text-gray-400 border-gray-200 transition-colors";
@@ -572,7 +758,7 @@
                 inputUrl.classList.add('hidden');
             }
         }
-
+        window.setImgMode = setImgMode;
         function convertBase64(input, idx) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
@@ -589,7 +775,7 @@
                 reader.readAsDataURL(file);
             }
         }
-
+        window.convertBase64 = convertBase64;
         [1, 2, 3].forEach(idx => {
             document.getElementById(`p-img-url-${idx}`).addEventListener('input', function(e) {
                 if(e.target.value) {
