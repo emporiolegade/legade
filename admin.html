@@ -264,6 +264,9 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- CONTROLES DE PAGINAÇÃO -->
+                    <div id="pagination-controls" class="hidden p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50 text-sm rounded-b-lg">
+                    </div>
                 </div>
             </div>
 
@@ -402,7 +405,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // DEFAULT CATEGORIES LIST (Limpa de qualquer resquício de categoria "Especial")
         const defaultCategories = [
             "Antepastos", "Biscoitos Gourmets", "Cachaça", "Carnes", 
             "Chocolates", "Decor", "Geléias", "Gins", "Licores", 
@@ -485,12 +487,13 @@
                 window.loadedCategories = [];
                 snapshot.forEach(doc => window.loadedCategories.push({id: doc.id, ...doc.data()}));
                 
-                tbody.innerHTML = '';
+                // Otimizado: String manipulation instead of DOM thrashing
+                let catHtml = '';
                 if(window.loadedCategories.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="2" class="p-4 text-center text-gray-400">Nenhuma categoria cadastrada. Use o botão "Restaurar Padrões".</td></tr>';
                 } else {
                     window.loadedCategories.forEach(cat => {
-                        tbody.innerHTML += `
+                        catHtml += `
                             <tr class="hover:bg-gray-50 group">
                                 <td class="p-4 font-bold text-gray-700 uppercase">${cat.name}</td>
                                 <td class="p-4 text-right">
@@ -501,13 +504,16 @@
                             </tr>
                         `;
                     });
+                    tbody.innerHTML = catHtml;
                 }
 
                 const currentSelection = select.value;
-                select.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+                let selectHtml = '<option value="" disabled selected>Selecione...</option>';
                 window.loadedCategories.forEach(cat => {
-                    select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+                    selectHtml += `<option value="${cat.name}">${cat.name}</option>`;
                 });
+                select.innerHTML = selectHtml;
+
                 if(currentSelection && window.loadedCategories.some(c => c.name === currentSelection)) {
                     select.value = currentSelection;
                 }
@@ -589,27 +595,41 @@
 
         // --- GESTÃO DE PRODUTOS ---
         window.loadedProducts = [];
+        window.currentPage = 1;
+        window.itemsPerPage = 20; // PAGINAÇÃO: Exibe 20 itens por vez para não travar
+        window.currentFilteredProducts = [];
 
         function loadProducts() {
             const q = query(collection(db, 'products'), orderBy('createdAt', 'desc')); 
             onSnapshot(q, (snapshot) => {
                 window.loadedProducts = [];
                 snapshot.forEach(doc => window.loadedProducts.push({id: doc.id, ...doc.data()}));
-                renderProductTable(window.loadedProducts);
+                renderProductTable(window.loadedProducts, 1);
             });
         }
 
-        function renderProductTable(products) {
+        function renderProductTable(products, page = 1) {
+            window.currentFilteredProducts = products;
+            window.currentPage = page;
+
             const tbody = document.getElementById('products-table-body');
             document.getElementById('total-products').innerText = `${products.length} Itens`;
-            tbody.innerHTML = '';
 
             if (products.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400">Nenhum produto encontrado.</td></tr>';
+                document.getElementById('pagination-controls').classList.add('hidden');
                 return;
             }
 
-            products.forEach(p => {
+            // Lógica de Paginação
+            const startIndex = (page - 1) * window.itemsPerPage;
+            const endIndex = startIndex + window.itemsPerPage;
+            const paginatedProducts = products.slice(startIndex, endIndex);
+
+            // Otimização de DOM: Construir uma única string previne o congelamento da tela (DOM Thrashing)
+            let htmlStr = '';
+
+            paginatedProducts.forEach(p => {
                 let thumb = 'https://via.placeholder.com/50';
                 if (p.images && p.images.length > 0) thumb = p.images[0];
                 else if (p.image) thumb = p.image;
@@ -622,13 +642,13 @@
                 
                 const unitLabel = p.unit || 'Un';
 
-                tbody.innerHTML += `
+                htmlStr += `
                     <tr class="hover:bg-gray-50 transition-colors group ${!isActive ? 'opacity-60' : ''}">
                         <td class="p-3 text-center align-middle">${statusDot}</td>
                         <td class="p-3 text-center align-middle">${starIcon}</td>
                         <td class="p-3">
                             <div class="w-10 h-10 md:w-12 md:h-12 rounded overflow-hidden border border-gray-200 bg-white shadow-sm">
-                                <img src="${thumb}" class="w-full h-full object-cover">
+                                <img src="${thumb}" loading="lazy" class="w-full h-full object-cover">
                             </div>
                         </td>
                         <td class="p-3 font-bold text-gray-700 leading-tight">${p.name}</td>
@@ -652,6 +672,39 @@
                     </tr>
                 `;
             });
+
+            // Aplica ao HTML uma única vez
+            tbody.innerHTML = htmlStr;
+
+            renderPaginationControls(products.length, page);
+        }
+
+        window.renderPaginationControls = function(totalItems, currentPage) {
+            const totalPages = Math.ceil(totalItems / window.itemsPerPage);
+            const paginationContainer = document.getElementById('pagination-controls');
+
+            if (totalPages <= 1) {
+                paginationContainer.classList.add('hidden');
+                return;
+            }
+
+            paginationContainer.classList.remove('hidden');
+            paginationContainer.innerHTML = `
+                <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Página ${currentPage} de ${totalPages}</span>
+                <div class="flex gap-2">
+                    <button onclick="changePage(${currentPage - 1})" class="px-3 py-1.5 rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" ${currentPage === 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button onclick="changePage(${currentPage + 1})" class="px-3 py-1.5 rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" ${currentPage === totalPages ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        window.changePage = function(newPage) {
+            if(newPage < 1) return;
+            renderProductTable(window.currentFilteredProducts, newPage);
         }
 
         window.handleProductSubmit = async function(e) {
@@ -810,7 +863,8 @@
                 p.name.toLowerCase().includes(term) || 
                 (p.category && p.category.toLowerCase().includes(term))
             );
-            renderProductTable(filtered);
+            // Ao buscar, reseta para a página 1
+            renderProductTable(filtered, 1);
         });
 
         function showToast(msg) {
